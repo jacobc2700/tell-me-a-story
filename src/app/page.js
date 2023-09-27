@@ -1,113 +1,187 @@
-import Image from 'next/image'
+"use client";
+
+import React, { useState } from "react";
+import axios from "axios";
 
 export default function Home() {
+  const initialFormData = {
+    subject: "",
+    emotion: "",
+    maxWords: "",
+    location: "",
+    authorName: "",
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
+  const [stories, setStories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    let text = `Please write a story about ${formData.subject} that is ${formData.emotion}. The story should be about ${formData.maxWords} words long and take place in ${formData.location}. The author of the story is ${formData.authorName}.`;
+    prompt(text);
+    setFormData(initialFormData);
+  };
+
+  const prompt = (msg) => {
+    const url = "https://api.openai.com/v1/chat/completions";
+    const headers = {
+      "Content-type": "application/json",
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+    };
+
+    const data = {
+      model: "gpt-3.5-turbo-0301",
+      messages: [{ role: "user", content: msg }],
+    };
+
+    setIsLoading(true);
+
+    axios
+      .post(url, data, { headers: headers })
+      .then((response) => {
+        console.log(response);
+
+        setStories((stories) => [
+          ...stories,
+          { message: response.data.choices[0].message.content },
+        ]);
+
+        setIsLoading(false);
+        console.log(stories);
+      })
+      .catch((error) => {
+        console.log(error);
+        setIsLoading(false);
+      });
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+    <div>
+      <h1 className="top-header">Generate Story</h1>
+      <form>
+        <div class="grid gap-6 md:grid-cols-2">
+          <div>
+            <label
+              for="subject"
+              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >
+              Subject
+            </label>
+            <input
+              type="text"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Water Bottles"
+              value={formData.subject}
+              name="subject"
+              onChange={handleInputChange}
+              required
             />
-          </a>
+          </div>
+          <div>
+            <label
+              for="emotion"
+              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >
+              Emotion
+            </label>
+            <input
+              type="text"
+              name="emotion"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Happy"
+              value={formData.emotion}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div>
+            <label
+              for="maxWords"
+              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >
+              Max # Words
+            </label>
+            <input
+              type="text"
+              name="maxWords"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="100"
+              value={formData.maxWords}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div>
+            <label
+              for="location"
+              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >
+              Location
+            </label>
+            <input
+              type="tel"
+              name="location"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="New York City"
+              value={formData.location}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div>
+            <label
+              for="authorName"
+              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >
+              Character Name
+            </label>
+            <input
+              type="url"
+              name="authorName"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Jane Doe"
+              value={formData.authorName}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
         </div>
+        <div class="grid gap-6 mb-6 md:grid-cols-1">
+          {" "}
+          <button
+            type="submit"
+            onClick={handleSubmit}
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          >
+            Generate
+          </button>
+        </div>
+      </form>
+      <hr class="h-px my-8 bg-gray-200 border-0 dark:bg-gray-700"></hr>
+      <h1 className="bottom-header">Stories</h1>
+      <div className="list-wrapper grid gap-6 mb-6 md:grid-cols-1">
+        {stories.length > 0 && (
+          <ul class="text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            {stories.map((message, index) => (
+              <li class="w-full px-4 py-2 border-b border-gray-200 dark:border-gray-600">
+                {message.message}
+              </li>
+            ))}
+          </ul>
+        )}
+        {isLoading && (
+          <div class="flex items-center justify-center">
+            <div class="w-12 h-12 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+    </div>
+  );
 }
