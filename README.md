@@ -1,6 +1,6 @@
 # tell-me-a-story
 
-Web application to produce AI-generated stories using ChatGPT API.
+Web application to produce AI-generated stories using the ChatGPT 3.5 API.
 
 Info:
 
